@@ -202,7 +202,7 @@ module.exports = class MetamaskController extends EventEmitter {
     this.keyringController.memStore.subscribe((s) => this._onKeyringControllerUpdate(s))
 
     this.permissionsController = new PermissionsController({
-      keyringController: this.keyringController,
+      getKeyringAccounts: this.keyringController.getAccounts.bind(this.keyringController),
       platform: opts.platform,
       notifyDomain: this.notifyConnections.bind(this),
       notifyAllDomains: this.notifyAllConnections.bind(this),
@@ -554,8 +554,9 @@ module.exports = class MetamaskController extends EventEmitter {
       getApprovedAccounts: nodeify(permissionsController.getAccounts.bind(permissionsController)),
       rejectPermissionsRequest: nodeify(permissionsController.rejectPermissionsRequest, permissionsController),
       removePermissionsFor: permissionsController.removePermissionsFor.bind(permissionsController),
-      updateExposedAccounts: nodeify(permissionsController.updateExposedAccounts, permissionsController),
+      updatePermittedAccounts: nodeify(permissionsController.updatePermittedAccounts, permissionsController),
       legacyExposeAccounts: nodeify(permissionsController.legacyExposeAccounts, permissionsController),
+      handleNewAccountSelected: nodeify(permissionsController.handleNewAccountSelected, permissionsController),
 
       getRequestAccountTabIds: (cb) => cb(null, this.getRequestAccountTabIds()),
       getOpenMetamaskTabsIds: (cb) => cb(null, this.getOpenMetamaskTabsIds()),
@@ -1015,6 +1016,18 @@ module.exports = class MetamaskController extends EventEmitter {
     this.preferencesController.setAddresses(allAccounts)
     // set new account as selected
     await this.preferencesController.setSelectedAddress(accounts[0])
+  }
+
+  /**
+   * Handle when a new account is selected for the given origin in the UI.
+   * Stores the address by origin and notifies external providers associated
+   * with the origin.
+   * @param {string} origin - The origin for which the address was selected.
+   * @param {string} address - The new selected address.
+   */
+  async handleNewAccountSelected (origin, address) {
+    this.permissionsController.handleNewAccountSelected(origin, address)
+    this.preferencesController.updateSelectedAddressHistory(origin, address)
   }
 
   // ---------------------------------------------------------------------------

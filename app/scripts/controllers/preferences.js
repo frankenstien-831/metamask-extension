@@ -63,6 +63,8 @@ class PreferencesController {
 
       // ENS decentralized website resolution
       ipfsGateway: 'ipfs.dweb.link',
+
+      selectedAddressHistory: {},
     }, opts.initState)
 
     this.diagnostics = opts.diagnostics
@@ -369,6 +371,22 @@ class PreferencesController {
    */
   getSelectedAddress () {
     return this.store.getState().selectedAddress
+  }
+
+  /**
+   * Update the last selected address for the given origin.
+   * @param {string} origin - The origin for which the address was selected.
+   * @param {string} address - The new selected address.
+   */
+  updateSelectedAddressHistory (origin, address) {
+
+    const { selectedAddressHistory } = this.store.getState()
+
+    // only update state if it's necessary
+    if (selectedAddressHistory[origin] !== address) {
+      selectedAddressHistory[origin] = address
+      this.store.updateState({ selectedAddressHistory })
+    }
   }
 
   /**
