@@ -57,5 +57,7 @@ module.exports = {
     'eth_submitWork',
     'eth_syncing',
     'eth_uninstallFilter',
+    'wallet_watchAsset',
+    'metamask_watchAsset',
   ],
 }
