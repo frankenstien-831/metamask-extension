@@ -40,8 +40,10 @@ class Driver {
 
   async findClickableElement (locator) {
     const element = await this.findElement(locator)
-    await this.driver.wait(until.elementIsVisible(element), this.timeout)
-    await this.driver.wait(until.elementIsEnabled(element), this.timeout)
+    await Promise.all([
+      this.driver.wait(until.elementIsVisible(element), this.timeout),
+      this.driver.wait(until.elementIsEnabled(element), this.timeout),
+    ])
     return element
   }
 
@@ -51,10 +53,15 @@ class Driver {
 
   async findClickableElements (locator) {
     const elements = await this.findElements(locator)
-    await Promise.all(elements.map(async element => {
-      await this.driver.wait(until.elementIsVisible(element), this.timeout)
-      await this.driver.wait(until.elementIsEnabled(element), this.timeout)
-    }))
+    await Promise.all(elements
+      .reduce(async (acc, element) => {
+        acc.push(
+          this.driver.wait(until.elementIsVisible(element), this.timeout),
+          this.driver.wait(until.elementIsEnabled(element), this.timeout),
+        )
+        return acc
+      }, [])
+    )
     return elements
   }
 
